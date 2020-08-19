@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -33,6 +33,7 @@ type BookInformation struct {
 	Title       string   `json:"title"`
 	Description string   `json:"description"`
 	Authors     []string `json:"authors"`
+	Categories  []string `json:"categories"`
 	Pages       int      `json:"pageCount"`
 	Images      struct {
 		Small  string `json:"smallThumbnail"`
@@ -63,7 +64,7 @@ func main() {
 
 		l, err := strconv.Atoi(limit)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("processing limit: %v", err), http.StatusBadRequest)
+			http.Error(w, "invalid limit", http.StatusBadRequest)
 			return
 		}
 
@@ -98,8 +99,12 @@ func main() {
 		w.Write(v)
 	}).Methods("GET")
 
-	if err := http.ListenAndServe(":8081", router); err != nil {
-		log.Fatal(err)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	if err := http.ListenAndServe(":" + port, router); err != nil {
+		panic(err)
 	}
 }
 
@@ -162,5 +167,6 @@ func hasEmptyInformation(bookInformation BookInformation) bool {
 		len(bookInformation.Authors) == 0 ||
 		bookInformation.Images.Normal == "" ||
 		bookInformation.Images.Small == "" ||
-		bookInformation.Title == ""
+		bookInformation.Title == "" ||
+		len(bookInformation.Categories) == 0
 }
