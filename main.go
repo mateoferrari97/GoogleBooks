@@ -15,16 +15,6 @@ import (
 
 const maxLimit = 50
 
-var conf = &oauth2.Config{
-	ClientID:     "176380119677-5r99e6b9jqho14cvfpc0inmeb1m48gkr.apps.googleusercontent.com",
-	ClientSecret: "h-D4PY8U_-uu-JInbPwDQ_Es",
-	RedirectURL:  "http://localhost:8081/redirect",
-	Scopes: []string{
-		"https://www.googleapis.com/auth/books",
-	},
-	Endpoint: google.Endpoint,
-}
-
 type Book struct {
 	BookInformation BookInformation `json:"book_information"`
 }
