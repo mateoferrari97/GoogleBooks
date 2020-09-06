@@ -9,8 +9,6 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 const maxLimit = 50
@@ -111,6 +109,7 @@ func getBooks(query string, limit int) ([]Book, error) {
 		return []Book{}, nil
 	}
 
+	booksRegistered := make(map[string]struct{})
 	for len(books) < limit {
 		resp, err := http.Get(fmt.Sprintf("https://www.googleapis.com/books/v1/volumes?q=%s", q))
 		if err != nil {
@@ -138,9 +137,11 @@ func getBooks(query string, limit int) ([]Book, error) {
 				break
 			}
 
-			if hasEmptyInformation(item.BookInformation) {
+			if hasEmptyInformation(item.BookInformation) || bookAlreadyRegistered(item.BookInformation, booksRegistered) {
 				continue
 			}
+
+			booksRegistered[item.BookInformation.Title] = struct{}{}
 
 			books = append(books, Book{
 				BookInformation: item.BookInformation,
@@ -159,4 +160,12 @@ func hasEmptyInformation(bookInformation BookInformation) bool {
 		bookInformation.Images.Small == "" ||
 		bookInformation.Title == "" ||
 		len(bookInformation.Categories) == 0
+}
+
+func bookAlreadyRegistered(bookInformation BookInformation, booksRegistered map[string]struct{}) bool {
+	if _, exist := booksRegistered[bookInformation.Title]; !exist {
+		return false
+	}
+
+	return true
 }
